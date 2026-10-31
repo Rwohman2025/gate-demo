@@ -5,8 +5,10 @@ Dartmouth GitHub repository. No personal `C:\Users\...` path is used.
 
 ## 1. Install the prerequisites
 
-Install Git, Python 3.12 or newer, and [uv](https://docs.astral.sh/uv/).
-Then clone this repository and open the `gate-demo` folder in Claude Code.
+Install Git and [uv](https://docs.astral.sh/uv/). The gate uses a compatible
+Python 3.12–3.14 runtime automatically, so it does not depend on your
+computer's default Python version. Then clone this repository and open the
+`gate-demo` folder in Claude Code.
 
 ## 2. Set the two local environment variables
 
