@@ -33,16 +33,21 @@ jobs:
           BACKEND_URL: ${{ secrets.BACKEND_URL }}
           GATE_SECRET: ${{ secrets.GATE_SECRET }}
 
-      - name: Post comprehension review links
-        if: ${{ failure() && steps.gate.outputs.gate_status == 'fail' }}
+      - name: Publish comprehension review links
+        if: ${{ always() && steps.gate.outcome == 'failure' }}
         uses: actions/github-script@v7
         env:
-          COMMENT_FILE: ${{ steps.gate.outputs.comment_file }}
+          COMMENT_FILE: ${{ runner.temp }}/comprehension-gate-comment.md
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const fs = require("fs");
+            if (!fs.existsSync(process.env.COMMENT_FILE)) {
+              core.warning("The gate failed before it could create review links.");
+              return;
+            }
             const body = fs.readFileSync(process.env.COMMENT_FILE, "utf8");
+            await core.summary.addRaw(body).write();
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
