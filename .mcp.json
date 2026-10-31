@@ -2,12 +2,11 @@
   "mcpServers": {
     "mcp-gate": {
       "type": "stdio",
-      "command": "uv",
+      "command": "uvx",
       "args": [
-        "--directory",
-        "C:\\Users\\iminl\\OneDrive\\Desktop\\Dartmouth\\Dartmouth\\mcp-gate",
-        "run",
-        "server.py"
+        "--from",
+        "git+https://github.com/Rwohman2025/Dartmouth.git@main#subdirectory=mcp-gate",
+        "mcp-gate"
       ]
     }
   }
