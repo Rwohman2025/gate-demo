@@ -70,14 +70,6 @@ def post_json(url: str, payload: dict[str, str], gate_secret: str) -> dict[str, 
     return data
 
 
-def write_output(name: str, value: str) -> None:
-    """Make a value available to the following GitHub Actions step."""
-    output_path = os.getenv("GITHUB_OUTPUT")
-    if output_path:
-        with Path(output_path).open("a", encoding="utf-8") as output:
-            output.write(f"{name}={value}\n")
-
-
 def failure_comment(unanswered: list[object]) -> str:
     """Build the exact Markdown that GitHub should post on the pull request."""
     lines = ["## Comprehension Gate", "", "This pull request has unanswered code-review questions:", ""]
@@ -96,7 +88,6 @@ def write_failure_comment(unanswered: list[object]) -> None:
     """Save the review links in the runner workspace before this step fails."""
     comment_path = Path(os.getenv("RUNNER_TEMP", ".")) / "comprehension-gate-comment.md"
     comment_path.write_text(failure_comment(unanswered), encoding="utf-8")
-    write_output("comment_file", str(comment_path))
 
 
 def main() -> int:
@@ -117,7 +108,6 @@ def main() -> int:
     unanswered = result.get("unanswered")
     if not isinstance(unanswered, list):
         raise RuntimeError("Backend /check returned an invalid unanswered list.")
-    write_output("gate_status", "fail")
     write_failure_comment(unanswered)
     print("Comprehension Gate found unanswered questions. The workflow will post a pull-request comment.")
     return 1
