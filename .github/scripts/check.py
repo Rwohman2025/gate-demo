@@ -5,7 +5,6 @@ from __future__ import annotations
 import json
 import os
 import subprocess
-import sys
 from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
@@ -18,13 +17,13 @@ def require_environment(name: str) -> str:
     return value
 
 
-def pull_request_context() -> tuple[str, str, int]:
-    """Return the base SHA, head SHA, and number from GitHub's event file."""
+def pull_request_context() -> tuple[str, str]:
+    """Return the base and head SHAs from GitHub's pull-request event file."""
     event_path = Path(require_environment("GITHUB_EVENT_PATH"))
     event = json.loads(event_path.read_text(encoding="utf-8"))
     try:
         pull_request = event["pull_request"]
-        return pull_request["base"]["sha"], pull_request["head"]["sha"], event["number"]
+        return pull_request["base"]["sha"], pull_request["head"]["sha"]
     except (KeyError, TypeError) as error:
         raise RuntimeError("This workflow must run for a pull_request event.") from error
 
@@ -71,46 +70,19 @@ def post_json(url: str, payload: dict[str, str], gate_secret: str) -> dict[str, 
     return data
 
 
-def failure_comment(unanswered: list[object]) -> str:
-    lines = ["## Comprehension Gate", "", "This pull request has unanswered code-review questions:", ""]
-    for item in unanswered:
-        if not isinstance(item, dict):
-            continue
-        file_path = item.get("file_path")
-        review_url = item.get("review_url")
-        if isinstance(file_path, str) and isinstance(review_url, str):
-            lines.append(f"- [`{file_path}`]({review_url})")
-    lines.extend(["", "Open each link, answer the question, then push your update."])
-    return "\n".join(lines)
-
-
-def post_pull_request_comment(repo: str, pull_number: int, body: str, github_token: str) -> None:
-    request = Request(
-        f"https://api.github.com/repos/{repo}/issues/{pull_number}/comments",
-        data=json.dumps({"body": body}).encode("utf-8"),
-        headers={
-            "Accept": "application/vnd.github+json",
-            "Authorization": f"Bearer {github_token}",
-            "Content-Type": "application/json",
-            "X-GitHub-Api-Version": "2022-11-28",
-        },
-        method="POST",
-    )
-    try:
-        with urlopen(request, timeout=30):
-            pass
-    except HTTPError as error:
-        raise RuntimeError(f"Could not post the pull-request comment (HTTP {error.code}).") from error
-    except URLError as error:
-        raise RuntimeError("Could not reach the GitHub API to post the pull-request comment.") from error
+def write_output(name: str, value: str) -> None:
+    """Make a value available to the following GitHub Actions step."""
+    output_path = os.getenv("GITHUB_OUTPUT")
+    if output_path:
+        with Path(output_path).open("a", encoding="utf-8") as output:
+            output.write(f"{name}={value}\n")
 
 
 def main() -> int:
     backend_url = require_environment("BACKEND_URL")
     gate_secret = require_environment("GATE_SECRET")
     repo = require_environment("GITHUB_REPOSITORY")
-    github_token = require_environment("GITHUB_TOKEN")
-    base_sha, head_sha, pull_number = pull_request_context()
+    base_sha, head_sha = pull_request_context()
     diff = pull_request_diff(base_sha, head_sha)
     result = post_json(backend_check_url(backend_url), {"repo": repo, "diff": diff}, gate_secret)
 
@@ -124,8 +96,9 @@ def main() -> int:
     unanswered = result.get("unanswered")
     if not isinstance(unanswered, list):
         raise RuntimeError("Backend /check returned an invalid unanswered list.")
-    post_pull_request_comment(repo, pull_number, failure_comment(unanswered), github_token)
-    print("Comprehension Gate found unanswered questions. A pull-request comment was posted.")
+    write_output("gate_status", "fail")
+    write_output("unanswered", json.dumps(unanswered, separators=(",", ":")))
+    print("Comprehension Gate found unanswered questions. The workflow will post a pull-request comment.")
     return 1
 
 
@@ -133,5 +106,5 @@ if __name__ == "__main__":
     try:
         raise SystemExit(main())
     except (RuntimeError, subprocess.CalledProcessError) as error:
-        print(f"Comprehension Gate error: {error}", file=sys.stderr)
+        print(f"Comprehension Gate error: {error}")
         raise SystemExit(1)

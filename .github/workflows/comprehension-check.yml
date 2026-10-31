@@ -6,6 +6,7 @@ on:
 # Needed for checkout and for creating a pull-request comment when review is required.
 permissions:
   contents: read
+  issues: write
   pull-requests: write
 
 jobs:
@@ -26,8 +27,36 @@ jobs:
           python-version: "3.11"
 
       - name: Check for unanswered comprehension questions
+        id: gate
         run: python .github/scripts/check.py
         env:
           BACKEND_URL: ${{ secrets.BACKEND_URL }}
           GATE_SECRET: ${{ secrets.GATE_SECRET }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Post comprehension review links
+        if: ${{ failure() && steps.gate.outputs.gate_status == 'fail' }}
+        uses: actions/github-script@v7
+        env:
+          UNANSWERED: ${{ steps.gate.outputs.unanswered }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const unanswered = JSON.parse(process.env.UNANSWERED || "[]");
+            const links = unanswered
+              .filter(item => item.file_path && item.review_url)
+              .map(item => `- [\`${item.file_path}\`](${item.review_url})`);
+            const body = [
+              "## Comprehension Gate",
+              "",
+              "This pull request has unanswered code-review questions:",
+              "",
+              ...links,
+              "",
+              "Open each link, answer the question, then push your update.",
+            ].join("\n");
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body,
+            });
