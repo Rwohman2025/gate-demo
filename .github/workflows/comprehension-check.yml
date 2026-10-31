@@ -32,6 +32,7 @@ jobs:
         env:
           BACKEND_URL: ${{ secrets.BACKEND_URL }}
           GATE_SECRET: ${{ secrets.GATE_SECRET }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish comprehension review links
         if: ${{ always() && steps.gate.outcome == 'failure' }}
