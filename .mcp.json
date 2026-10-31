@@ -2,12 +2,8 @@
   "mcpServers": {
     "mcp-gate": {
       "type": "stdio",
-      "command": "uvx",
-      "args": [
-        "--from",
-        "git+https://github.com/Rwohman2025/Dartmouth.git@main#subdirectory=mcp-gate",
-        "mcp-gate"
-      ]
+      "command": "mcp-gate",
+      "args": []
     }
   }
 }

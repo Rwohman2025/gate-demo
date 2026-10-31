@@ -5,10 +5,24 @@ Dartmouth GitHub repository. No personal `C:\Users\...` path is used.
 
 ## 1. Install the prerequisites
 
-Install Git and [uv](https://docs.astral.sh/uv/). The gate uses a compatible
-Python 3.12–3.14 runtime automatically, so it does not depend on your
-computer's default Python version. Then clone this repository and open the
-`gate-demo` folder in Claude Code.
+Install Git and [uv](https://docs.astral.sh/uv/). Then clone this repository:
+
+```powershell
+git clone https://github.com/Rwohman2025/gate-demo.git
+cd gate-demo
+```
+
+Install the gate once. This downloads it from GitHub before Claude Code tries
+to connect, avoiding a first-launch timeout:
+
+```powershell
+uv tool install --python 3.14 "git+https://github.com/Rwohman2025/Dartmouth.git@main#subdirectory=mcp-gate"
+uv tool update-shell
+```
+
+Close and reopen your terminal and Claude Code after running these commands.
+`uv tool update-shell` makes the installed `mcp-gate` command available to
+Claude Code.
 
 ## 2. Set the two local environment variables
 
@@ -28,8 +42,8 @@ same two variables in the terminal that launches Claude Code.
 
 ## 3. Use the gate
 
-The `.mcp.json` file runs `mcp-gate` with `uvx`. On its first use, uv downloads
-the published gate code from GitHub; later launches use its local cache.
+The `.mcp.json` file starts the already-installed `mcp-gate` command, so the
+MCP connection opens immediately.
 
 Ask Claude Code to create or change a file. It must call `propose_write`.
 The gate stores the proposed file under `.pending/`, opens a question form,
@@ -38,6 +52,12 @@ three attempts, the `.pending/` copy remains so you can review it.
 
 Your MCP client must support elicitation forms for the question popup to
 appear. Restart Claude Code if the `mcp-gate` tools do not show up.
+
+To update the gate later, run this from any terminal:
+
+```powershell
+uv tool upgrade mcp-gate
+```
 
 ## 4. Pull-request check
 
