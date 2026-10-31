@@ -86,7 +86,7 @@ def failure_comment(unanswered: list[object]) -> str:
 
 def write_failure_comment(unanswered: list[object]) -> None:
     """Save the review links in the runner workspace before this step fails."""
-    comment_path = Path(os.getenv("RUNNER_TEMP", ".")) / "comprehension-gate-comment.md"
+    comment_path = Path(os.getenv("GITHUB_WORKSPACE", ".")) / ".comprehension-gate-comment.md"
     comment_path.write_text(failure_comment(unanswered), encoding="utf-8")
 
 
