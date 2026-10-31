@@ -1,9 +1,3 @@
 {
-  "mcpServers": {
-    "mcp-gate": {
-      "type": "stdio",
-      "command": "mcp-gate",
-      "args": []
-    }
-  }
+  "mcpServers": {}
 }
