@@ -8,10 +8,7 @@
         "C:\\Users\\iminl\\OneDrive\\Desktop\\Dartmouth\\Dartmouth\\mcp-gate",
         "run",
         "server.py"
-      ],
-      "env": {
-        "MOCK_BACKEND": "1"
-      }
+      ]
     }
   }
 }
