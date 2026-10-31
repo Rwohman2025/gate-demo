@@ -37,7 +37,7 @@ jobs:
         if: ${{ always() && steps.gate.outcome == 'failure' }}
         uses: actions/github-script@v7
         env:
-          COMMENT_FILE: ${{ runner.temp }}/comprehension-gate-comment.md
+          COMMENT_FILE: ${{ github.workspace }}/.comprehension-gate-comment.md
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
