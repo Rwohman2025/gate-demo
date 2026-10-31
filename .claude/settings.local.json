@@ -1,0 +1,6 @@
+{
+  "enabledMcpjsonServers": [
+    "mcp-gate"
+  ],
+  "enableAllProjectMcpServers": true
+}
