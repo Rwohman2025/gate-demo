@@ -1,0 +1,7 @@
+def two_plus_two():
+    """Return the result of 2 + 2."""
+    return 2 + 2
+
+
+if __name__ == "__main__":
+    print(two_plus_two())
